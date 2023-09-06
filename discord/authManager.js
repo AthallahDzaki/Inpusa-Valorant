@@ -36,8 +36,8 @@ export const activeWaitForAuthQueueResponse = async (interaction, queueResponse,
     }
 }
 
-export const loginUsernamePassword = async (interaction, username, password, operationIndex=null) => {
-    let login = await queueUsernamePasswordLogin(interaction.user.id, username, password);
+export const loginUsernamePassword = async (interaction, username, password, storepass = false, operationIndex=null) => {
+    let login = await queueUsernamePasswordLogin(interaction.user.id, username, password, storepass);
     if(login.inQueue) login = await activeWaitForAuthQueueResponse(interaction, login);
 
     const user = getUser(interaction.user.id);
@@ -61,7 +61,7 @@ export const loginUsernamePassword = async (interaction, username, password, ope
             operation: Operations.USERNAME_PASSWORD,
             id: interaction.user.id,
             timestamp: Date.now(),
-            username, password
+            username, password, storepass
         });
 
         await interaction.editReply({

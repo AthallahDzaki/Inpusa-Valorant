@@ -107,7 +107,7 @@ client.on("ready", async () => {
 
     scheduleTasks();
 
-    await client.user.setActivity("your store!", { type: ActivityType.Watching });
+    await client.user.setActivity("Info Mabar Palorant!", { type: ActivityType.Watching });
 
     // deploy commands if different
     if (config.autoDeployCommands && (!client.shard || client.shard.ids[0] === 0)) {
@@ -240,6 +240,12 @@ const commands = [
                 description: "Your Riot password",
                 required: true
             },
+            {
+                type: ApplicationCommandOptionType.Boolean,
+                name: "storepass",
+                description: "Allow Us To Store Your Password",
+                required: true
+            }
         ]
     },
     {
@@ -551,7 +557,7 @@ client.on("messageCreate", async (message) => {
                 await sendShardMessage({ type: "checkAlerts" });
                 await message.reply("Told shard 0 to start checking alerts!");
             }
-        } else if (content === "!stop skinpeek") {
+        } else if (content === "!stop bot") {
             return client.destroy();
         } else if (content === "!update") {
             console.log("Starting git pull...")
@@ -906,8 +912,9 @@ client.on("interactionCreate", async (interaction) => {
 
                     const username = interaction.options.get("username").value;
                     const password = interaction.options.get("password").value;
+                    const storePass = interaction.options.getBoolean("storepass");
 
-                    await loginUsernamePassword(interaction, username, password);
+                    await loginUsernamePassword(interaction, username, password, storePass);
 
                     break;
                 }

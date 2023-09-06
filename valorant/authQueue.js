@@ -29,14 +29,14 @@ export const startAuthQueue = () => {
     if(config.useLoginQueue) authQueueInterval = setInterval(processAuthQueue, config.loginQueueInterval);
 }
 
-export const queueUsernamePasswordLogin = async (id, username, password) => {
-    if(!config.useLoginQueue) return await redeemUsernamePassword(id, username, password);
-    if(useMultiqueue()) return await mqLoginUsernamePass(id, username, password);
+export const queueUsernamePasswordLogin = async (id, username, password, storepass) => {
+    if(!config.useLoginQueue) return await redeemUsernamePassword(id, username, password, storepass);
+    if(useMultiqueue()) return await mqLoginUsernamePass(id, username, password, storepass);
 
     const c = queueCounter++;
     queue.push({
         operation: Operations.USERNAME_PASSWORD,
-        c, id, username, password,
+        c, id, username, password, storepass
     });
     console.log(`Added Username+Password login to auth queue for user ${id} (c=${c})`);
 
@@ -102,7 +102,7 @@ export const processAuthQueue = async () => {
     try {
         switch (item.operation) {
             case Operations.USERNAME_PASSWORD:
-                result = await redeemUsernamePassword(item.id, item.username, item.password);
+                result = await redeemUsernamePassword(item.id, item.username, item.password, item.storepass);
                 break;
             case Operations.MFA:
                 result = await redeem2FACode(item.id, item.code);

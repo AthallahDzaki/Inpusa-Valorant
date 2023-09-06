@@ -3,7 +3,7 @@ import {loadConfig} from "./misc/config.js";
 
 const config = loadConfig();
 
-const manager = new ShardingManager('./SkinPeek.js', {
+const manager = new ShardingManager('./index.js', {
     token: config.token,
     mode: "worker"
 });

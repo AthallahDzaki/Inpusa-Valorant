@@ -109,6 +109,7 @@ export const deleteUser = (id, accountNumber) => {
     const userToDelete = userJson.accounts[indexToDelete];
 
     userJson.accounts.splice(indexToDelete, 1);
+    console.log(id);
     if(userJson.accounts.length === 0) fs.unlinkSync("data/users/" + id + ".json");
     else if(userJson.currentAccount > userJson.accounts.length) userJson.currentAccount = userJson.accounts.length;
 

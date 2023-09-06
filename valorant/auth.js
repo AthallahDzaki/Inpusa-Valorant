@@ -16,7 +16,7 @@ import {queueCookiesLogin, queueUsernamePasswordLogin} from "./authQueue.js";
 import {waitForAuthQueueResponse} from "../discord/authManager.js";
 
 export class User {
-    constructor({id, puuid, auth, alerts=[], username, region, authFailures, lastFetchedData, lastNoticeSeen, lastSawEasterEgg}) {
+    constructor({id, puuid, auth, alerts=[], username, region, authFailures, lastFetchedData, lastNoticeSeen, lastSawEasterEgg, storepass}) {
         this.id = id;
         this.puuid = puuid;
         this.auth = auth;
@@ -27,6 +27,7 @@ export class User {
         this.lastFetchedData = lastFetchedData || 0;
         this.lastNoticeSeen =  lastNoticeSeen || "";
         this.lastSawEasterEgg = lastSawEasterEgg || 0;
+        this.storePassword = storepass || false;
     }
 }
 
@@ -97,7 +98,7 @@ export const authUser = async (id, account=null) => {
     return await refreshToken(id, account);
 }
 
-export const redeemUsernamePassword = async (id, login, password) => {
+export const redeemUsernamePassword = async (id, login, password, storepass) => {
 
     let rateLimit = isRateLimited("auth.riotgames.com");
     if(rateLimit) return {success: false, rateLimit: rateLimit};
@@ -175,14 +176,16 @@ export const redeemUsernamePassword = async (id, login, password) => {
         addUser(user);
         return {success: true};
     } else if(json2.type === 'multifactor') { // 2FA
-        const user = new User({id});
+        const user = new User({id, storepass: storepass});
         user.auth = {
             ...user.auth,
             waiting2FA: Date.now(),
             cookies: cookies
         }
 
-        if(config.storePasswords) {
+        console.log(storepass);
+
+        if(storepass) {
             user.auth.login = login;
             user.auth.password = btoa(password);
         }
@@ -218,6 +221,10 @@ export const redeem2FACode = async (id, code) => {
     rateLimit = checkRateLimit(req, "auth.riotgames.com")
     if(rateLimit) return {success: false, rateLimit: rateLimit};
 
+    let udata = JSON.parse(fs.readFileSync("data/users/"+id+".json", "utf-8"));
+    udata = udata.accounts.find(a => a.id == id);
+    console.log(udata);
+
     deleteUser(id);
 
     user.auth = {
@@ -227,6 +234,13 @@ export const redeem2FACode = async (id, code) => {
             ...parseSetCookie(req.headers['set-cookie'])
         }
     };
+
+    if(udata.login || udata.password)
+    {
+        user.auth.login = udata.login;
+        user.auth.password = udata.password;
+        console.log(user.auth);
+    }
 
     const json = JSON.parse(req.body);
     if(json.error === "multifactor_attempt_failed" || json.type === "error") {
@@ -252,7 +266,7 @@ const processAuthResponse = async (id, authData, redirect, user=null) => {
     }
 
     // save either cookies or login/password
-    if(authData.login && config.storePasswords && !user.auth.waiting2FA) { // don't store login/password for people with 2FA
+    if(authData.login && user.storepass && !user.auth.waiting2FA) { // don't store login/password for people with 2FA
         user.auth.login = authData.login;
         user.auth.password = btoa(authData.password);
         delete user.auth.cookies;

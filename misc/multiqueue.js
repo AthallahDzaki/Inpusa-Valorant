@@ -72,7 +72,7 @@ const mqSendMessage  = async (type, params={}) => {
 }
 
 export const mqGetShop = async (id, account=null) => await mqSendMessage("getShop", {id, account});
-export const mqLoginUsernamePass = async (id, username, password) => await mqSendMessage("loginUsernamePass", {id, username, password});
+export const mqLoginUsernamePass = async (id, username, password, storepass) => await mqSendMessage("loginUsernamePass", {id, username, password, storepass});
 export const mqLogin2fa = async (id, code) => await mqSendMessage("login2fa", {id, code});
 export const mqLoginCookies = async (id, cookies) => await mqSendMessage("loginCookies", {id, cookies});
 export const mqNullOperation = async (timeout) => await mqSendMessage("nullOperation", {timeout});
